@@ -60,4 +60,3 @@ class OperatorParser(BaseParser):
             "info": results
         }
         return result
-   
