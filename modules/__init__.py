@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 import re
 from typing import Any
+from modules import iso_3166_1
 
 full_url_parser = {
     "http://ipblock.chacuo.net/": lambda x: x,
@@ -11,6 +12,7 @@ full_url_parser = {
     "http://as.chacuo.net/": None,
     "http://as.chacuo.net/company": None,
     "http://as.chacuo.net/list": None,
+    "http://doc.chacuo.net/iso-3166-1": iso_3166_1.Parser().parse
 }
 
 start_url_parser = {

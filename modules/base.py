@@ -5,10 +5,6 @@ from typing import Any, Dict
 
 class BaseParser:
 
-    def __init__(self):
-        self.clickable = None
-        self.info = None
-
     def _parse(self, data) -> Any:
         raise NotImplementedError
 
