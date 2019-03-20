@@ -20,3 +20,31 @@ class Parser(BaseParser):
             "info": list(country_urls.keys())
         }
         return result
+
+
+class CountryParser(BaseParser):
+
+    def _parse(self, data):
+        soup = BeautifulSoup(data, 'html.parser')
+        div = soup.find('div', class_='section_content ip_block_list')
+        res = []
+
+        for b in div('b'):
+            res.append(b.text)
+
+        text_url = div('a')[2]['href']
+        info = {
+            "update_time": res[0],
+            "global_count": res[1],
+            "count": res[2],
+            "percent": res[3],
+            "global_list": res[4],
+            "ip_count": text_url
+        }
+        result = {
+            "clickable": {
+                "ip_count": text_url
+            },
+            "info": info
+        }
+        return result

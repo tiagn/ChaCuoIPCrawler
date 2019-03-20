@@ -3,27 +3,28 @@
 import re
 from typing import Any
 from modules import iso_3166_1
+from modules import country_ip_range
 
 full_url_parser = {
-    "http://ipblock.chacuo.net/": lambda x: x,
-    "http://ipcn.chacuo.net/": None,
-    "http://ips.chacuo.net/": None,
-    "http://ipblock.chacuo.net/list": None,
-    "http://as.chacuo.net/": None,
-    "http://as.chacuo.net/company": None,
-    "http://as.chacuo.net/list": None,
+    "http://ipblock.chacuo.net/": country_ip_range.Parser().parse,
+    "http://ipcn.chacuo.net/": lambda x: x,
+    "http://ips.chacuo.net/": lambda x: x,
+    "http://ipblock.chacuo.net/list": lambda x: x,
+    "http://as.chacuo.net/": lambda x: x,
+    "http://as.chacuo.net/company": lambda x: x,
+    "http://as.chacuo.net/list": lambda x: x,
     "http://doc.chacuo.net/iso-3166-1": iso_3166_1.Parser().parse
 }
 
 start_url_parser = {
-    "http://ipcn.chacuo.net/view/i_": None,
-    "http://ipblock.chacuo.net/view/c_": None,
-    "http://as.chacuo.net/companyview/s_": None,
-    "http://as.chacuo.net/as": None
+    "http://ipcn.chacuo.net/view/i_": lambda x: x,
+    "http://ipblock.chacuo.net/view/c_": country_ip_range.CountryParser().parse,
+    "http://as.chacuo.net/companyview/s_": lambda x: x,
+    "http://as.chacuo.net/as": lambda x: x
 }
 
 regex_url_parser = {
-    r"http://as.chacuo.net/[A-Z]{2}": None
+    r"http://as.chacuo.net/[A-Z]{2}": lambda x: x
 }
 
 
