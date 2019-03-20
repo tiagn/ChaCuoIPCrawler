@@ -19,8 +19,8 @@ class Parser(BaseParser):
                 continue
             results.append(
                 {
-                    "second": res[0],
-                    "three": res[1],
+                    "second_code": res[0],
+                    "three_code": res[1],
                     "number": res[2],
                     "code": res[3],
                     "country": res[4],
