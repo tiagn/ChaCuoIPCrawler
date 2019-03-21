@@ -15,36 +15,59 @@ from typing import Any, List, Dict, Tuple
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 class Downloader:
 
     def __init__(self):
         self.headers = {'User-Agent': fake_useragent.UserAgent().random}
         self.loop = asyncio.get_event_loop()
 
-    async def _download(self, url: str, **kwargs) -> Dict:
-        time.sleep(random.randint(1, 50) * 0.1)  # 防止访问太频繁，强制休息 0.1-0.5 秒
-        async with aiohttp.ClientSession() as session:
-            logging.info(f'获取: {url}')
-            if url.startswith('http://ipblock.chacuo.net/down'):
-                self.headers['Referer'] = 'http://ipblock.chacuo.net/view/'+ url.split('=')[1]
-            async with session.get(url, headers=self.headers) as resp:
-                return dict({"url": url, "response": await resp.text(errors='ignore')}, **kwargs)
+    async def _download(self, url: str, sleep_time: int = 1, headers: Dict = None, append_info: Dict = None) -> Dict:
+
+        if sleep_time * 10 < 10:
+            sleep_time = 10
+        time.sleep(random.randint(1, sleep_time) * 0.1)  # 防止访问太频繁，强制休息 0.1 秒以上
+
+        if headers:
+            headers = dict(headers, **self.headers)
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                logging.info(f'获取: {url}')
+                async with session.get(url, headers=headers) as resp:
+                    response = await resp.text(errors='ignore')
+                    if append_info:
+                        append_info['response'] = response
+                    return append_info
+        except Exception as e:
+            logging.warning(f'请检查网络, 原因: {e}')
 
     def download(self, url: str) -> Tuple[Any]:
-        resps = self.downloads([{"url": url}])
+        resps = self.downloads([url])
         if resps:
             return resps[0]
 
-    def downloads(self, url_infos: List) -> Tuple[Any]:
+    def downloads(self, url_infos: List, all_append: bool = True) -> Tuple[Any]:
         tasks = []
         for url_info in url_infos:
-            url = url_info["url"]
-            del url_info["url"]
-            tasks.append(self._download(url, **url_info))
-        try:
-            return self.loop.run_until_complete(asyncio.gather(*tasks))
-        except Exception as e:
-            logging.warning(f'请检查网络状态，错误：{e}')
+            if isinstance(url_info, str):
+                tasks.append(self._download(url_info))
+            else:
+                url = url_info.get('url')
+                sleep_time = url_info.get('sleep_time')
+                headers = url_info.get('headers')
+                if all_append:
+                    tasks.append(self._download(url, sleep_time=sleep_time, headers=headers, append_info=url_info))
+                else:
+                    if 'url' in url_info:
+                        del url_info['url']
+                    if 'sleep_time' in url_info:
+                        del url_info['sleep_time']
+                    if 'headers' in url_info:
+                        del url_info['headers']
+                    tasks.append(self._download(url, sleep_time=sleep_time, headers=headers, append_info=url_info))
+
+        return self.loop.run_until_complete(asyncio.gather(*tasks))
 
 
 class Crawler:
