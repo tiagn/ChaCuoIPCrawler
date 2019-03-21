@@ -23,24 +23,29 @@ class Downloader:
         self.loop = asyncio.get_event_loop()
 
     async def _download(self, url: str, sleep_time: int = 1, headers: Dict = None, append_info: Dict = None) -> Dict:
-
-        if sleep_time * 10 < 10:
+        sleep_time *= 10
+        if sleep_time < 10:
             sleep_time = 10
         time.sleep(random.randint(1, sleep_time) * 0.1)  # 防止访问太频繁，强制休息 0.1 秒以上
 
         if headers:
             headers = dict(headers, **self.headers)
-
-        try:
-            async with aiohttp.ClientSession() as session:
-                logging.info(f'获取: {url}')
-                async with session.get(url, headers=headers) as resp:
-                    response = await resp.text(errors='ignore')
-                    if append_info:
+        for _ in range(3):
+            try:
+                async with aiohttp.ClientSession() as session:
+                    logging.info(f'获取: {url}')
+                    async with session.get(url, headers=headers) as resp:
+                        response = await resp.text(errors='ignore')
+                        if not append_info:
+                            return {"response": response}
                         append_info['response'] = response
-                    return append_info
-        except Exception as e:
-            logging.warning(f'请检查网络, 原因: {e}')
+                        append_info['url'] = url
+                        return append_info
+            except TimeoutError:
+                logging.warning(f'{url} 超时，重试中...')
+                continue
+            except Exception as e:
+                logging.warning(f'请检查网络, 原因: {e}')
 
     def download(self, url: str) -> Tuple[Any]:
         resps = self.downloads([url])
@@ -54,7 +59,7 @@ class Downloader:
                 tasks.append(self._download(url_info))
             else:
                 url = url_info.get('url')
-                sleep_time = url_info.get('sleep_time')
+                sleep_time = url_info.get('sleep_time', 1)
                 headers = url_info.get('headers')
                 if all_append:
                     tasks.append(self._download(url, sleep_time=sleep_time, headers=headers, append_info=url_info))
@@ -93,6 +98,11 @@ class Crawler:
         return self._data
 
     def _craw(self, urls: Any):
+        """
+        urls 为链接时是str， 返回字典，urls为list时，list包含的是一个字典，其中一定要有url字段，返回的是list，里面也是字典
+        :param urls:
+        :return:
+        """
         if isinstance(urls, str):
             url = urls.strip()
             parser = modules.find_parser(url)
@@ -119,52 +129,56 @@ class Crawler:
             json.dump(data, fw)
 
 
-def save_countrys_ip_ranges_by_country(dir_path='test/'):
+def save_countrys_ip_ranges_by_country(dir_path: str = 'test/', sleep_time: int = 1):
     url = 'http://ipblock.chacuo.net/'
     crawler = Crawler()
+    logging.info('获取所有国家')
     res = crawler.click(url)
     if not res:
-        print('请检查网络')
         return
     clicks = []
-    count = 0
     for key, value in res['clickable'].items():
-        # if count > 50:
-        #     count = 0
-        #     break
-        # count += 1
         clicks.append({
             "url": value,
-            "country": key
+            "country": key,
+            "sleep_time": sleep_time
         })
+    logging.info('获取所有国家的IP段详情')
     res = crawler.click(clicks)
     if not res:
-        print('请检查网络')
         return
-    results = []
+    requests = []
     for info in res.values():
-        # if count > 50:
-        #     count = 0
-        #     break
-        # count += 1
         url = info['info']['url']
-        results.append({
+        requests.append({
             "url": url,
-            "country": info['country']
+            "country": info['country'],
+            "headers": {"Referer": info['url']},
+            "sleep_time": sleep_time
         })
-    res = crawler.click(results)
+    logging.info('获取所有国家的IP段')
+    res = crawler.click(requests)
+    if not res:
+        return
+    all_country = {}
+    all_path = None
     for info in res.values():
-        path = dir_path + info['country']
-        try:
-            with open(path, 'w') as fw:
+        if not dir_path.endswith('/'):
+            path = dir_path + "/" + info['country']
+            all_path = dir_path + "/所有国家"
+        else:
+            path = dir_path + info['country']
+            all_path = dir_path + "所有国家"
+        with open(path, 'w', encoding='utf8') as fw:
+            if 'ip_range' in info['info']:
+                all_country[info['country']] = info['info']['ip_range']
                 json.dump(info['info']['ip_range'], fw)
-        except Exception:
-            pass
+            else:
+                all_country[info['country']] = []
+    if all_path:
+        with open(all_path, 'w', encoding='utf8') as fw:
+            json.dump(all_country, fw)
 
 
 if __name__ == '__main__':
-    # a = Crawler()
-    # from pprint import pprint
-    #
-    # pprint(a.click("http://ipblock.chacuo.net/"))
-    save_countrys_ip_ranges_by_country()
+    save_countrys_ip_ranges_by_country(dir_path='data/countrys_ip_range/')
