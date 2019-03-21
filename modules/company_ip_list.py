@@ -44,8 +44,19 @@ class CompanyParser(BaseParser):
                 "register_time": res[4].text,
             })
             click[res[1].text.strip()] = res[1].a['href']
+        ip_ranges = []
+        div = soup('div', class_="clearfix")[3]
+        for ul in div('ul'):
+            for li in ul('li'):
+                res = []
+                for span in li('span'):
+                    res.append(span.text)
+                ip_ranges.append('-'.join(res))
         result = {
             "clickable": click,
-            "info": results
+            "info": {
+                "as_info": results,
+                "ip_range": ip_ranges
+            }
         }
         return result
