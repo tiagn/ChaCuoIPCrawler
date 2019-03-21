@@ -55,18 +55,23 @@ class CountryIPRangeParser(BaseParser):
     def _parse(self, data):
         soup = BeautifulSoup(data, 'html.parser')
         pre = soup.find('pre')
-        ip_range_raw = pre.text.split(r'\r\n')
+        if not pre:
+            return {
+                "clickable": {},
+                "info": {}
+            }
+        ip_range_raw = pre.text.split('\r\n')
         results = []
         for ip_range in ip_range_raw:
             if not ip_range:
                 continue
-            res = ip_range.split(r'\t')
+            res = ip_range.split('\t')
             results.append('-'.join([res[0], res[1]]))
 
         result = {
             "clickable": {},
             "info": {
-                "ip_range":results
+                "ip_range": results
             }
         }
         return result
