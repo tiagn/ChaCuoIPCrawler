@@ -25,6 +25,7 @@ full_url_parser = {
 start_url_parser = {
     "http://ipcn.chacuo.net/view/i_": domestic_operator_ip_range.OperatorParser().parse,
     "http://ipblock.chacuo.net/view/c_": country_ip_range.CountryParser().parse,
+    "http://ipblock.chacuo.net/down/t_txt=c_": country_ip_range.CountryIPRangeParser().parse,
     "http://ips.chacuo.net/view/s_": domestic_provinces_and_cities_ip_range.ProvinceParser().parse,
     "http://as.chacuo.net/companyview/s_": company_ip_list.CompanyParser().parse,
     "http://as.chacuo.net/as": global_as.ASParser().parse

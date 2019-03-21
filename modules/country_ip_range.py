@@ -39,12 +39,34 @@ class CountryParser(BaseParser):
             "count": res[2],
             "percent": res[3],
             "global_list": res[4],
-            "ip_count": text_url
+            "url": text_url
         }
         result = {
             "clickable": {
-                "ip_count": text_url
+                "ip_range": text_url
             },
             "info": info
+        }
+        return result
+
+
+class CountryIPRangeParser(BaseParser):
+
+    def _parse(self, data):
+        soup = BeautifulSoup(data, 'html.parser')
+        pre = soup.find('pre')
+        ip_range_raw = pre.text.split(r'\r\n')
+        results = []
+        for ip_range in ip_range_raw:
+            if not ip_range:
+                continue
+            res = ip_range.split(r'\t')
+            results.append('-'.join([res[0], res[1]]))
+
+        result = {
+            "clickable": {},
+            "info": {
+                "ip_range":results
+            }
         }
         return result
