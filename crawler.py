@@ -366,6 +366,50 @@ def save_companys_as_by_companys(dir_path: str = 'test/', sleep_time: int = 1):
             json.dump(all_as, fw, ensure_ascii=False)
 
 
+def save_countrys_as_by_country(dir_path: str = 'test/', sleep_time: int = 1):
+    """
+    获取所有国家的as并保存为国家名称为单位的文件
+    :param dir_path: 目录
+    :param sleep_time: 每个链接休息时间，避免短时访问量大
+    :return:
+    """
+    url = 'http://as.chacuo.net/'
+    crawler = Crawler()
+    logging.info('获取所有国家的as详情')
+    res = crawler.click(url)
+    if not res:
+        return
+    clicks = []
+    for key, value in res['clickable'].items():
+        clicks.append({
+            "url": value,
+            "country": key,
+            "sleep_time": sleep_time
+        })
+    logging.info('获取所有国家的as')
+    res = crawler.click(clicks)
+    if not res:
+        return
+    all_as = {}
+    all_path = None
+    for info in res.values():
+        if not dir_path.endswith('/'):
+            path = dir_path + "/" + info['country']
+            all_path = dir_path + "/所有国家"
+        else:
+            path = dir_path + info['country']
+            all_path = dir_path + "所有国家"
+        with open(path, 'w', encoding='utf8') as fw:
+            if 'info' not in info or 'as' not in info['info']:
+                all_as[info['country']] = []
+                continue
+            all_as[info['country']] = info['info']['as']
+            json.dump(info['info']['as'], fw, ensure_ascii=False)
+    if all_path:
+        with open(all_path, 'w', encoding='utf8') as fw:
+            json.dump(all_as, fw, ensure_ascii=False)
+
+
 if __name__ == '__main__':
     # # 获取所有国家的IP段并保存为国家名称为单位的文件
     # save_countrys_ip_ranges_by_country(dir_path='data/countrys_ip_range/')
@@ -379,5 +423,8 @@ if __name__ == '__main__':
     # # 获取全球网络公司IP段并保存为网络公司为单位的文件
     # save_companys_ip_range_by_companys(dir_path='data/companys_ip_range/')
 
-    # 获取全球网络公司 as 并保存为网络公司为单位的文件
-    save_companys_as_by_companys(dir_path='data/companys_as/')
+    # # 获取全球网络公司 as 并保存为网络公司为单位的文件
+    # save_companys_as_by_companys(dir_path='data/companys_as/')
+
+    # 获取所有国家的as并保存为国家名称为单位的文件
+    save_countrys_as_by_country(dir_path='data/countrys_as/')
