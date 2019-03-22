@@ -130,6 +130,12 @@ class Crawler:
 
 
 def save_countrys_ip_ranges_by_country(dir_path: str = 'test/', sleep_time: int = 1):
+    """
+    获取所有国家的IP段并保存为国家名称为单位的文件
+    :param dir_path: 目录
+    :param sleep_time: 每个链接休息时间，避免短时访问量大
+    :return:
+    """
     url = 'http://ipblock.chacuo.net/'
     crawler = Crawler()
     logging.info('获取所有国家')
