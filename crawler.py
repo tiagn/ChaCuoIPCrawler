@@ -222,7 +222,7 @@ def save_domestic_operator_ip_ranges_by_operator(dir_path: str = 'test/', sleep_
             all_path = dir_path + "所有运营商"
         with open(path, 'w', encoding='utf8') as fw:
             if 'info' not in info:
-                all_operator[info['operator']] = ""
+                all_operator[info['operator']] = {}
                 continue
             all_operator[info['operator']] = info['info']
             json.dump(info['info'], fw, ensure_ascii=False)
@@ -231,9 +231,57 @@ def save_domestic_operator_ip_ranges_by_operator(dir_path: str = 'test/', sleep_
             json.dump(all_operator, fw, ensure_ascii=False)
 
 
+def save_domestic_provinces_ip_range_by_provinces(dir_path: str = 'test/', sleep_time: int = 1):
+    """
+    获取国内省份IP段并保存为省份为单位的文件
+    :param dir_path: 目录
+    :param sleep_time: 每个链接休息时间，避免短时访问量大
+    :return:
+    """
+    url = 'http://ips.chacuo.net/'
+    crawler = Crawler()
+    logging.info('获取国内省份IP段详情')
+    res = crawler.click(url)
+    if not res:
+        return
+    clicks = []
+    for key, value in res['clickable'].items():
+        clicks.append({
+            "url": value,
+            "province": key,
+            "sleep_time": sleep_time,
+            "headers": {"Referer": url},
+        })
+    logging.info('获取国内省份IP段')
+    res = crawler.click(clicks)
+    if not res:
+        return
+    all_provinces = {}
+    all_path = None
+    for info in res.values():
+        if not dir_path.endswith('/'):
+            path = dir_path + "/" + info['province']
+            all_path = dir_path + "/所有省份"
+        else:
+            path = dir_path + info['province']
+            all_path = dir_path + "所有省份"
+        with open(path, 'w', encoding='utf8') as fw:
+            if 'info' not in info or 'ip_range' not in info['info']:
+                all_provinces[info['province']] = []
+                continue
+            all_provinces[info['province']] = info['info']['ip_range']
+            json.dump(info['info']['ip_range'], fw, ensure_ascii=False)
+    if all_path:
+        with open(all_path, 'w', encoding='utf8') as fw:
+            json.dump(all_provinces, fw, ensure_ascii=False)
+
+
 if __name__ == '__main__':
-    # 获取所有国家的IP段并保存为国家名称为单位的文件
+    # # 获取所有国家的IP段并保存为国家名称为单位的文件
     # save_countrys_ip_ranges_by_country(dir_path='data/countrys_ip_range/')
 
-    # 获取国内运营商的IP段并保存为运营商名称为单位的文件
-    save_domestic_operator_ip_ranges_by_operator(dir_path='data/operator_ip_range/')
+    # # 获取国内运营商的IP段并保存为运营商名称为单位的文件
+    # save_domestic_operator_ip_ranges_by_operator(dir_path='data/operator_ip_range/')
+
+    # 获取国内省份IP段并保存为省份为单位的文件
+    save_domestic_provinces_ip_range_by_provinces(dir_path='data/provinces_ip_range/')
