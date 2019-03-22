@@ -200,12 +200,7 @@ def save_domestic_operator_ip_ranges_by_operator(dir_path: str = 'test/', sleep_
     if not res:
         return
     clicks = []
-    count = 0
     for key, value in res['clickable'].items():
-        if count >= 1:
-            count = 0
-            break
-        count += 1
         clicks.append({
             "url": value,
             "operator": key,
