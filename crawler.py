@@ -178,13 +178,63 @@ def save_countrys_ip_ranges_by_country(dir_path: str = 'test/', sleep_time: int 
         with open(path, 'w', encoding='utf8') as fw:
             if 'ip_range' in info['info']:
                 all_country[info['country']] = info['info']['ip_range']
-                json.dump(info['info']['ip_range'], fw)
+                json.dump(info['info']['ip_range'], fw, ensure_ascii=False)
             else:
                 all_country[info['country']] = []
     if all_path:
         with open(all_path, 'w', encoding='utf8') as fw:
-            json.dump(all_country, fw)
+            json.dump(all_country, fw, ensure_ascii=False)
+
+
+def save_domestic_operator_ip_ranges_by_operator(dir_path: str = 'test/', sleep_time: int = 1):
+    """
+    获取国内运营商的IP段并保存为运营商名称为单位的文件
+    :param dir_path: 目录
+    :param sleep_time: 每个链接休息时间，避免短时访问量大
+    :return:
+    """
+    url = 'http://ipcn.chacuo.net/'
+    crawler = Crawler()
+    logging.info('获取所有运营商')
+    res = crawler.click(url)
+    if not res:
+        return
+    clicks = []
+    count = 0
+    for key, value in res['clickable'].items():
+        if count >= 1:
+            count = 0
+            break
+        count += 1
+        clicks.append({
+            "url": value,
+            "operator": key,
+            "sleep_time": sleep_time
+        })
+    logging.info('获取所有运营商的IP段')
+    res = crawler.click(clicks)
+    if not res:
+        return
+    all_operator = {}
+    all_path = None
+    for info in res.values():
+        if not dir_path.endswith('/'):
+            path = dir_path + "/" + info['operator']
+            all_path = dir_path + "/所有运营商"
+        else:
+            path = dir_path + info['operator']
+            all_path = dir_path + "所有运营商"
+        with open(path, 'w', encoding='utf8') as fw:
+            all_operator[info['operator']] = info['info']
+            json.dump(info['info'], fw, ensure_ascii=False)
+    if all_path:
+        with open(all_path, 'w', encoding='utf8') as fw:
+            json.dump(all_operator, fw, ensure_ascii=False)
 
 
 if __name__ == '__main__':
-    save_countrys_ip_ranges_by_country(dir_path='data/countrys_ip_range/')
+    # 获取所有国家的IP段并保存为国家名称为单位的文件
+    # save_countrys_ip_ranges_by_country(dir_path='data/countrys_ip_range/')
+
+    # 获取国内运营商的IP段并保存为运营商名称为单位的文件
+    save_domestic_operator_ip_ranges_by_operator(dir_path='data/operator_ip_range/')
