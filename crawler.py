@@ -297,7 +297,7 @@ def save_companys_ip_range_by_companys(dir_path: str = 'test/', sleep_time: int 
             "sleep_time": sleep_time,
             "headers": {"Referer": url},
         })
-    logging.info('获取国内省份IP段')
+    logging.info('获取全球网络公司IP段')
     res = crawler.click(clicks)
     if not res:
         return
@@ -321,6 +321,51 @@ def save_companys_ip_range_by_companys(dir_path: str = 'test/', sleep_time: int 
             json.dump(all_provinces, fw, ensure_ascii=False)
 
 
+def save_companys_as_by_companys(dir_path: str = 'test/', sleep_time: int = 1):
+    """
+    获取全球网络公司 as 并保存为网络公司为单位的文件
+    :param dir_path: 目录
+    :param sleep_time: 每个链接休息时间，避免短时访问量大
+    :return:
+    """
+    url = 'http://as.chacuo.net/company'
+    crawler = Crawler()
+    logging.info('获取全球网络公司as详情')
+    res = crawler.click(url)
+    if not res:
+        return
+    clicks = []
+    for key, value in res['clickable'].items():
+        clicks.append({
+            "url": value,
+            "company": key,
+            "sleep_time": sleep_time,
+            "headers": {"Referer": url},
+        })
+    logging.info('获取全球网络公司as')
+    res = crawler.click(clicks)
+    if not res:
+        return
+    all_as = {}
+    all_path = None
+    for info in res.values():
+        if not dir_path.endswith('/'):
+            path = dir_path + "/" + info['company']
+            all_path = dir_path + "/所有网络公司"
+        else:
+            path = dir_path + info['company']
+            all_path = dir_path + "所有网络公司"
+        with open(path, 'w', encoding='utf8') as fw:
+            if 'info' not in info or 'as_info' not in info['info']:
+                all_as[info['company']] = []
+                continue
+            all_as[info['company']] = info['info']['as_info']
+            json.dump(info['info']['as_info'], fw, ensure_ascii=False)
+    if all_path:
+        with open(all_path, 'w', encoding='utf8') as fw:
+            json.dump(all_as, fw, ensure_ascii=False)
+
+
 if __name__ == '__main__':
     # # 获取所有国家的IP段并保存为国家名称为单位的文件
     # save_countrys_ip_ranges_by_country(dir_path='data/countrys_ip_range/')
@@ -331,5 +376,8 @@ if __name__ == '__main__':
     # # 获取国内省份IP段并保存为省份为单位的文件
     # save_domestic_provinces_ip_range_by_provinces(dir_path='data/provinces_ip_range/')
 
-    # 获取全球网络公司IP段并保存为网络公司为单位的文件
-    save_companys_ip_range_by_companys(dir_path='data/companys_ip_range/')
+    # # 获取全球网络公司IP段并保存为网络公司为单位的文件
+    # save_companys_ip_range_by_companys(dir_path='data/companys_ip_range/')
+
+    # 获取全球网络公司 as 并保存为网络公司为单位的文件
+    save_companys_as_by_companys(dir_path='data/companys_as/')
