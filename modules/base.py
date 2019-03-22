@@ -14,7 +14,7 @@ class BaseParser:
         try:
             result = self._parse(data)
         except Exception as e:
-            logging.warning(f'解析失败，原因: {e}, \n{traceback.format_exc()}')
+            logging.warning(f'解析失败，请检查网站或联系作者，原因: {e}')
             return {}
         if 'clickable' not in result:
             return {}
