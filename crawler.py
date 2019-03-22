@@ -176,7 +176,7 @@ def save_countrys_ip_ranges_by_country(dir_path: str = 'test/', sleep_time: int 
             path = dir_path + info['country']
             all_path = dir_path + "所有国家"
         with open(path, 'w', encoding='utf8') as fw:
-            if 'ip_range' in info['info']:
+            if 'info' in info and 'ip_range' in info['info']:
                 all_country[info['country']] = info['info']['ip_range']
                 json.dump(info['info']['ip_range'], fw, ensure_ascii=False)
             else:
@@ -204,7 +204,8 @@ def save_domestic_operator_ip_ranges_by_operator(dir_path: str = 'test/', sleep_
         clicks.append({
             "url": value,
             "operator": key,
-            "sleep_time": sleep_time
+            "sleep_time": sleep_time,
+            "headers": {"Referer": url},
         })
     logging.info('获取所有运营商的IP段')
     res = crawler.click(clicks)
@@ -220,6 +221,9 @@ def save_domestic_operator_ip_ranges_by_operator(dir_path: str = 'test/', sleep_
             path = dir_path + info['operator']
             all_path = dir_path + "所有运营商"
         with open(path, 'w', encoding='utf8') as fw:
+            if 'info' not in info:
+                all_operator[info['operator']] = ""
+                continue
             all_operator[info['operator']] = info['info']
             json.dump(info['info'], fw, ensure_ascii=False)
     if all_path:
