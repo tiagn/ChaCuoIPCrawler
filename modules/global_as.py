@@ -37,7 +37,7 @@ class CountryParser(BaseParser):
 
     def _parse(self, data):
 
-        soup = BeautifulSoup(data, 'html.parser')
+        soup = BeautifulSoup(data, 'lxml')
         results = []
         click = {}
         div = soup.find('div', class_="section_content ip_block_list_ph")
