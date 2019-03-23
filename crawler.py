@@ -108,6 +108,7 @@ class Crawler:
             parser = modules.find_parser(url)
             resp = self.downloader.download(url)
             if resp:
+                logging.info(f'解析: {url}')
                 return parser(resp['response'])
         elif isinstance(urls, list):
             tmp_urls = []
@@ -120,6 +121,7 @@ class Crawler:
                 if resp:
                     url = resp['url']
                     parser = modules.find_parser(url)
+                    logging.info(f'解析: {url}')
                     results[url] = dict(parser(resp['response']), **resp)
             return results
 
@@ -410,6 +412,69 @@ def save_countrys_as_by_country(dir_path: str = 'test/', sleep_time: int = 1):
             json.dump(all_as, fw, ensure_ascii=False)
 
 
+def save_as_ip_range_by_as(dir_path: str = 'test/', sleep_time: int = 1, countrys: list = None):
+    """
+    根据国家获取国家as的IP段并保存为as名称为单位的文件
+    :param dir_path: 目录
+    :param sleep_time: 每个链接休息时间，避免短时访问量大
+    :param countrys: 由于as 数量过大，很难一次性下载，因此提供按国家as下载,默认下载中国as
+    :return:
+    """
+    if not countrys:
+        countrys = ["中国"]
+
+    url = 'http://as.chacuo.net/'
+    crawler = Crawler()
+    logging.info('获取所有国家')
+    res = crawler.click(url)
+    if not res:
+        return
+    clicks = []
+    for key, value in res['clickable'].items():
+        if key not in countrys:
+            continue
+        clicks.append({
+            "url": value,
+            "as": key,
+            "sleep_time": sleep_time
+        })
+    logging.info('获取所有国家的as详情')
+    res = crawler.click(clicks)
+    if not res:
+        return
+    clicks = []
+    for info in res.values():
+        as_info_list = info['info']["as"]
+        for as_info in as_info_list:
+            clicks.append({
+                "url": as_info['url'],
+                "as": as_info['as_num'],
+                "sleep_time": sleep_time,
+                "headers": {"Referer": info['url']},
+            })
+    res = crawler.click(clicks)
+    if not res:
+        return
+    all_as = {}
+    all_path = None
+    for info in res.values():
+        if not dir_path.endswith('/'):
+            path = dir_path + "/" + info['as']
+            all_path = dir_path + "/所有as"
+        else:
+            path = dir_path + info['as']
+            all_path = dir_path + "所有as"
+        with open(path, 'w', encoding='utf8') as fw:
+            if 'info' not in info or 'ip_ranges' not in info['info']:
+                all_as[info['as']] = []
+                continue
+            all_as[info['as']] = info['info']['ip_ranges']
+            json.dump(info['info']['ip_ranges'], fw, ensure_ascii=False)
+    if all_path:
+        with open(all_path, 'w', encoding='utf8') as fw:
+            json.dump(all_as, fw, ensure_ascii=False)
+
+
 if __name__ == '__main__':
     # # 获取所有国家的IP段并保存为国家名称为单位的文件
     # save_countrys_ip_ranges_by_country(dir_path='data/countrys_ip_range/')
@@ -426,5 +491,8 @@ if __name__ == '__main__':
     # # 获取全球网络公司 as 并保存为网络公司为单位的文件
     # save_companys_as_by_companys(dir_path='data/companys_as/')
 
-    # 获取所有国家的as并保存为国家名称为单位的文件
-    save_countrys_as_by_country(dir_path='data/countrys_as/')
+    # # 获取所有国家的as并保存为国家名称为单位的文件
+    # save_countrys_as_by_country(dir_path='data/countrys_as/')
+
+    # 根据国家获取国家as的IP段并保存为as名称为单位的文件, 如果下载美国这种大量as数据请检查系统是否支持
+    save_as_ip_range_by_as(dir_path='data/as_ip_range/', countrys=["卢森堡"])
