@@ -85,11 +85,16 @@ class Crawler:
         return self._data
 
     def click(self, data: Any) -> Any:
+        pre_data = self._data
+        self._data = None
         if isinstance(data, str):
-            if self._data:
-                if 'clickable' in self._data:
-                    if data in self._data['clickable']:
-                        self._data = self._craw(self._data['clickable'][data])
+            if pre_data:
+                if 'clickable' in pre_data:
+                    if data in pre_data['clickable']:
+                        self._data = self._craw(pre_data['clickable'][data])
+                    else:
+                        if data.startswith('http'):
+                            self._data = self._craw(data)
             else:
                 if data.startswith('http'):
                     self._data = self._craw(data)
