@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 from bs4 import BeautifulSoup
 
-from modules.base import BaseParser
+from modules.base import BaseParser, ip_range_to_cidr
 
 
 class Parser(BaseParser):
@@ -66,7 +66,7 @@ class CountryIPRangeParser(BaseParser):
             if not ip_range:
                 continue
             res = ip_range.split('\t')
-            results.append('-'.join([res[0], res[1]]))
+            results.extend(ip_range_to_cidr(res[0], res[1]))
 
         result = {
             "clickable": {},

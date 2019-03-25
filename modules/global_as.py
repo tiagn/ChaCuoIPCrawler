@@ -3,7 +3,7 @@
 
 
 from bs4 import BeautifulSoup
-from modules.base import BaseParser
+from modules.base import BaseParser, ip_range_to_cidr
 
 
 class Parser(BaseParser):
@@ -100,7 +100,7 @@ class ASParser(BaseParser):
                 ip_ranges_res = []
                 for span in li('span'):
                     ip_ranges_res.append(span.text)
-                ip_ranges.append('-'.join(ip_ranges_res))
+                ip_ranges.extend(ip_range_to_cidr(ip_ranges_res[0], ip_ranges_res[1]))
         results = {
             "as_num": res[0],
             "country": res[1],

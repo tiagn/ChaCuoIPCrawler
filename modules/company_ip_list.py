@@ -3,7 +3,7 @@
 
 from bs4 import BeautifulSoup
 
-from modules.base import BaseParser
+from modules.base import BaseParser, ip_range_to_cidr
 
 
 class Parser(BaseParser):
@@ -51,7 +51,7 @@ class CompanyParser(BaseParser):
                 res = []
                 for span in li('span'):
                     res.append(span.text)
-                ip_ranges.append('-'.join(res))
+                ip_ranges.extend(ip_range_to_cidr(res[0], res[1]))
         result = {
             "clickable": click,
             "info": {

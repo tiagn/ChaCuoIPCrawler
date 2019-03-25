@@ -3,7 +3,7 @@
 
 from bs4 import BeautifulSoup, NavigableString
 
-from modules.base import BaseParser
+from modules.base import BaseParser, ip_range_to_cidr
 
 
 class Parser(BaseParser):
@@ -53,7 +53,7 @@ class OperatorParser(BaseParser):
                 ip_range = []
                 for span in next_tag("span"):
                     ip_range.append(span.text)
-                res.append('-'.join(ip_range))
+                res.extend(ip_range_to_cidr(ip_range[0], ip_range[1]))
             next_tag = next_tag.next_sibling
         result = {
             "clickable": {},

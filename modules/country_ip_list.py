@@ -6,6 +6,7 @@ from modules.base import BaseParser
 
 
 class Parser(BaseParser):
+    """http://ipblock.chacuo.net/list"""
 
     def _parse(self, data):
 

@@ -3,7 +3,7 @@
 
 from bs4 import BeautifulSoup
 
-from modules.base import BaseParser
+from modules.base import BaseParser, ip_range_to_cidr
 
 
 class Parser(BaseParser):
@@ -50,7 +50,7 @@ class ProvinceParser(BaseParser):
                 tmp_res = []
                 for span in dd('span'):
                     tmp_res.append(span.text)
-                ip_range_res.append('-'.join(tmp_res))
+                ip_range_res.extend(ip_range_to_cidr(tmp_res[0], tmp_res[1]))
 
         info = {
             "update_time": res[0],

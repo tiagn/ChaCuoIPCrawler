@@ -1,8 +1,9 @@
 # /usr/bin/python
 # coding:utf8
 import logging
+import netaddr
 import traceback
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 
 class BaseParser:
@@ -22,3 +23,7 @@ class BaseParser:
             return {}
 
         return result
+
+
+def ip_range_to_cidr(start_ip: str, end_ip: str) -> List[str]:
+    return [str(cidr) for cidr in netaddr.iprange_to_cidrs(start_ip, end_ip)]
