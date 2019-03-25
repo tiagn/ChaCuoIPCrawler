@@ -55,6 +55,7 @@ class OperatorParser(BaseParser):
                     ip_range.append(span.text)
                 res.extend(ip_range_to_cidr(ip_range[0], ip_range[1]))
             next_tag = next_tag.next_sibling
+        results[title] = res
         result = {
             "clickable": {},
             "info": results
