@@ -72,7 +72,12 @@ class Downloader:
                         del url_info['headers']
                     tasks.append(self._download(url, sleep_time=sleep_time, headers=headers, append_info=url_info))
 
-        return self.loop.run_until_complete(asyncio.gather(*tasks))
+        tasks_list = [tasks[i:i + 10] for i in range(0, len(tasks), 10)]
+        results = []
+        for tasks in tasks_list:
+            results.extend(self.loop.run_until_complete(asyncio.gather(*tasks)))
+            time.sleep(3)
+        return tuple(results)
 
 
 class Crawler:
@@ -500,4 +505,5 @@ if __name__ == '__main__':
     # save_countrys_as_by_country(dir_path='data/countrys_as/')
 
     # 根据国家获取国家as的IP段并保存为as名称为单位的文件, 如果下载美国这种大量as数据请检查系统是否支持
-    save_as_ip_range_by_as(dir_path='data/as_ip_range/', countrys=["卢森堡"])
+    # save_as_ip_range_by_as(dir_path='data/as_ip_range/', countrys=["卢森堡"])
+    save_as_ip_range_by_as(dir_path='data/as_ip_range/')

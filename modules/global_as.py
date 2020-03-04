@@ -56,6 +56,9 @@ class CountryParser(BaseParser):
             if 5 != len(res):
                 continue
             click[res[1].text.strip()] = res[1].a['href']
+            count = int(res[3].text.strip('个').replace(',', ''))
+            if count <= 0:
+                continue
             results.append({
                 "sort": res[0].text,
                 "as_num": res[1].text.strip(),
