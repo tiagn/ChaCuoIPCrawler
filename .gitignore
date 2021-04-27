@@ -1,5 +1,5 @@
 .idea/*
 *.pyc
 test/*
-Pipfile*
+Pipfile.lock
 modules/demo.html
